@@ -1,19 +1,18 @@
 use crate::http::Request;
-use std::io::Read;
 use std::convert::TryFrom;
 use std::convert::TryInto;
+use std::io::Read;
 use std::net::TcpListener;
 
 pub struct Server {
-  addr: String,
+    addr: String,
 }
 
 impl Server {
-
     // new could be called any, but convention is to use "new" for constructor
     pub fn new(addr: String) -> Self {
-        Server{
-            addr // addr: addr
+        Server {
+            addr, // addr: addr
         }
     }
 
@@ -24,7 +23,6 @@ impl Server {
         let listener = TcpListener::bind(&self.addr).unwrap();
 
         loop {
-
             // First option
             // let res = listener.accept();
             // if res.is_err() {
@@ -44,18 +42,16 @@ impl Server {
 
                             // let res: &Result<Request, _> = &buffer[..].try_into();
                             match Request::try_from(&buffer[..]) {
-                                Ok(request) => {},
-                                Err(e) => println!("Failed to parse a request: {}", e)
+                                Ok(request) => {}
+                                Err(e) => println!("Failed to parse a request: {}", e),
                             }
-
-                        },
-                        Err(e) => println!("Failed to read from connection: {}", e)
+                        }
+                        Err(e) => println!("Failed to read from connection: {}", e),
                     }
-                },
+                }
                 Err(e) => {
                     println!("Failed to establish a connection: {}", e);
-                },
-                // _ => println!("All variants that are not catched explicitly")
+                } // _ => println!("All variants that are not catched explicitly")
             }
         }
     }

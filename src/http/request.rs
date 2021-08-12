@@ -1,14 +1,13 @@
-use super::method::{ Method, MethodError };
-use std::str::Utf8Error;
+use super::method::{Method, MethodError};
 use std::convert::TryFrom;
 use std::error::Error;
-use std::fmt::{ Debug, Display, Formatter, Result as FmtResult };
+use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
 use std::str;
+use std::str::Utf8Error;
 
-
-pub struct Request<'bufLifetime> {
-    path: &'bufLifetime str,
-    query_string: Option<&'bufLifetime str>, // Option enum wrapping the string, could be None or a String
+pub struct Request<'buf_lifetime> {
+    path: &'buf_lifetime str,
+    query_string: Option<&'buf_lifetime str>, // Option enum wrapping the string, could be None or a String
     method: Method,
 }
 
@@ -16,13 +15,12 @@ pub struct Request<'bufLifetime> {
 //     fn from_byte_array(buf: &[u8]) -> Result<Self, String> {}
 // }
 
-impl<'bufLifetime> TryFrom<&'bufLifetime [u8]> for Request<'bufLifetime> {
+impl<'buf_lifetime> TryFrom<&'buf_lifetime [u8]> for Request<'buf_lifetime> {
     type Error = ParseError;
 
     // GET /search?name=abc&sort=1 HTTP/1.1\r\n....HEADERS....
 
-    fn try_from(buf: &'bufLifetime [u8]) -> Result<Request<'bufLifetime>, Self::Error> {
-
+    fn try_from(buf: &'buf_lifetime [u8]) -> Result<Request<'buf_lifetime>, Self::Error> {
         // OPTION 1
         // match str::from_utf8(buf) {
         //     Ok(request) => {},
@@ -37,14 +35,14 @@ impl<'bufLifetime> TryFrom<&'bufLifetime [u8]> for Request<'bufLifetime> {
 
         // OPTION 3
         // let request = str::from_utf8(buf).or(Err(ParseError::InvalidEncoding))?;
-        
+
         // OPTION 4
         let request = str::from_utf8(buf)?; // looks for Utf8Error parser, implemented in this file
 
-        match get_next_word(request) {
-            Some((method, request)) => {},
-            None => return Err(ParseError::InvalidRequest),
-        }
+        // match get_next_word(request) {
+        //     Some((method, request)) => {}
+        //     None => return Err(ParseError::InvalidRequest),
+        // }
 
         // creates a new "request" variable: variable shadowing
         let (method, request) = get_next_word(request).ok_or(ParseError::InvalidRequest)?;
@@ -58,7 +56,7 @@ impl<'bufLifetime> TryFrom<&'bufLifetime [u8]> for Request<'bufLifetime> {
         let method: Method = method.parse()?;
 
         let mut query_string = None;
-        
+
         // OPTION 1
 
         // match path.find('?') {
@@ -84,18 +82,18 @@ impl<'bufLifetime> TryFrom<&'bufLifetime [u8]> for Request<'bufLifetime> {
         if let Some(i) = path.find('?') {
             query_string = Some(&path[i + 1..]);
             path = &path[..i];
-        } 
+        }
 
-        Ok(Self { 
+        Ok(Self {
             path,
             query_string,
-            method
+            method,
         })
-        
     }
 }
 
-fn get_next_word<'a> (request: &'a str) -> Option<(&'a str, &'a str)> { // returns (word, rest_of_string) or None
+fn get_next_word<'a>(request: &'a str) -> Option<(&'a str, &'a str)> {
+    // returns (word, rest_of_string) or None
     // let mut iter = request.chars();
     // loop {
     //     let item = iter.next();
@@ -108,7 +106,7 @@ fn get_next_word<'a> (request: &'a str) -> Option<(&'a str, &'a str)> { // retur
     for (i, c) in request.chars().enumerate() {
         if c == ' ' || c == '\r' {
             // we know that space is 1 byte long
-            return Some((&request[..i], &request[i + 1..]))
+            return Some((&request[..i], &request[i + 1..]));
         }
     }
 
@@ -131,12 +129,10 @@ pub enum ParseError {
     InvalidRequest,
     InvalidEncoding,
     InvalidProtocol,
-    InvalidMethod
+    InvalidMethod,
 }
 
-impl Error for ParseError {
-
-}
+impl Error for ParseError {}
 
 impl Display for ParseError {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
@@ -151,12 +147,12 @@ impl Debug for ParseError {
 }
 
 impl ParseError {
-    fn message (&self) -> &str {
+    fn message(&self) -> &str {
         match self {
             Self::InvalidRequest => "Invalid Request",
             Self::InvalidEncoding => "Invalid Encoding",
             Self::InvalidProtocol => "Invalid Protocol",
-            Self::InvalidMethod => "Invalid Method"
+            Self::InvalidMethod => "Invalid Method",
         }
     }
 }
