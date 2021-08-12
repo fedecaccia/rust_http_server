@@ -35,6 +35,8 @@ impl Server {
                     let mut buffer = [0; 1024]; // 1024 bytes with zeros
                     match stream.read(&mut buffer) {
                         Ok(_) => {
+                            // test reading using netcat:
+                            // echo "\xFF TEST" | nc 127.0.0.1 8080
                             println!("Receive a request: {}", String::from_utf8_lossy(&buffer));
                         },
                         Err(e) => println!("Failed to read from connection: {}", e)
