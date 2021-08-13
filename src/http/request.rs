@@ -1,5 +1,5 @@
-use super::{ QueryString };
-use super::method::{ Method, MethodError };
+use super::method::{Method, MethodError};
+use super::QueryString;
 use std::convert::TryFrom;
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
@@ -11,6 +11,20 @@ pub struct Request<'buf_lifetime> {
     path: &'buf_lifetime str,
     query_string: Option<QueryString<'buf_lifetime>>, // Option enum wrapping the string, could be None or a String
     method: Method,
+}
+
+impl<'buf_lifetime> Request<'buf_lifetime> {
+    pub fn path(&self) -> &str {
+        &self.path
+    }
+
+    pub fn method(&self) -> &Method {
+        &self.method
+    }
+
+    pub fn query_string(&self) -> Option<&QueryString> {
+        self.query_string.as_ref()
+    }
 }
 
 // impl Request {
