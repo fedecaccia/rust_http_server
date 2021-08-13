@@ -1,5 +1,7 @@
 use std::str::FromStr;
 
+
+#[derive(Debug)] 
 pub enum Method {
     // in memory represented by numbers, starging from 0
     // GET(String), // this one is defined by a String

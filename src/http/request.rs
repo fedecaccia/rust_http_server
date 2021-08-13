@@ -1,13 +1,15 @@
-use super::method::{Method, MethodError};
+use super::{ QueryString };
+use super::method::{ Method, MethodError };
 use std::convert::TryFrom;
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter, Result as FmtResult};
 use std::str;
 use std::str::Utf8Error;
 
+#[derive(Debug)] // add the trait Debug for generic case
 pub struct Request<'buf_lifetime> {
     path: &'buf_lifetime str,
-    query_string: Option<&'buf_lifetime str>, // Option enum wrapping the string, could be None or a String
+    query_string: Option<QueryString<'buf_lifetime>>, // Option enum wrapping the string, could be None or a String
     method: Method,
 }
 
@@ -80,7 +82,7 @@ impl<'buf_lifetime> TryFrom<&'buf_lifetime [u8]> for Request<'buf_lifetime> {
         // OPTION 3
 
         if let Some(i) = path.find('?') {
-            query_string = Some(&path[i + 1..]);
+            query_string = Some(QueryString::from(&path[i + 1..]));
             path = &path[..i];
         }
 
